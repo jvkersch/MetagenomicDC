@@ -85,9 +85,10 @@ if __name__ == "__main__":
 	i=1
 	kfold = StratifiedKFold(n_splits=n_folds, shuffle=True)
 	for train, test in kfold.split(X, Y):
+                print(i)
 		model = None # Clearing the NN.
 		model = create_model(nb_classes,input_length)
 		pred,Y_test = train_and_evaluate_model(model, X[train], Y[train], X[test], Y[test],nb_classes)
-                np.save("./results/preds_"+nome_test+"_"+str(i)+"_tanh",pred)
-                np.save("./results/test_"+nome_test+"_"+str(i)+"_tanh",Y_test)
+                np.save("./results/preds_"+nome_train+"_"+str(i)+"_tanh",pred)
+                np.save("./results/test_"+nome_train+"_"+str(i)+"_tanh",Y_test)
                 i=i+1
