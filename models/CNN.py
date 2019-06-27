@@ -1,3 +1,4 @@
+import cPickle as pickle
 from sklearn.model_selection import StratifiedKFold
 import sys
 from keras.models import Sequential
@@ -61,34 +62,43 @@ def create_model(nb_classes,input_length):
     return model
 
 
-def train_and_evaluate_model (model, datatr, labelstr, datate, labelste,nb_classes):
+def train_and_evaluate_model (model, datatr, labelstr, nb_classes):
 
 
     datatr = datatr.reshape(datatr.shape + (1,))
     labelstr = np_utils.to_categorical(labelstr, nb_classes)
-    labelste_bin = np_utils.to_categorical(labelste, nb_classes)
 
-    model.fit(datatr, labelstr, nb_epoch=100, batch_size=20, verbose = 0)
-    datate = datate.reshape(datate.shape + (1,))
+    history = model.fit(datatr, labelstr, epochs=100, batch_size=20, validation_split=0.1)
+    model.save("{}.dat".format(nome_train))
+    with open("{}.hist".format(nome_train), "wb") as fp:
+            pickle.dump(history.history, fp)
     
-    tr_scores = model.evaluate(datatr,labelstr,verbose=0)
-    preds = model.predict_classes(datate,verbose = 0)
+
+# def train_and_evaluate_model (i, model, datatr, labelstr, datate, labelste,nb_classes):
+
+
+#     datatr = datatr.reshape(datatr.shape + (1,))
+#     labelstr = np_utils.to_categorical(labelstr, nb_classes)
+#     labelste_bin = np_utils.to_categorical(labelste, nb_classes)
+
+#     history = model.fit(datatr, labelstr, nb_epoch=100, batch_size=20, verbose = 0)
+#     datate = datate.reshape(datate.shape + (1,))
+#     model.save("{}-{}.dat".format(nome_train, i))
+#     with open("{}-{}.hist".format(nome_train, i), "wb") as fp:
+#             pickle.dump(history.history, fp)
     
-    scores = model.evaluate(datate, labelste_bin,verbose=0)
-    return preds, labelste
+#     tr_scores = model.evaluate(datatr,labelstr,verbose=0)
+#     preds = model.predict_classes(datate,verbose = 0)
+    
+#     scores = model.evaluate(datate, labelste_bin,verbose=0)
+#     return preds, labelste
+
 
 
 if __name__ == "__main__":
 	n_folds = 10
 	X,Y,nb_classes,input_length = load_data(sys.argv[1])
 	
-	i=1
-	kfold = StratifiedKFold(n_splits=n_folds, shuffle=True)
-	for train, test in kfold.split(X, Y):
-                print(i)
-		model = None # Clearing the NN.
-		model = create_model(nb_classes,input_length)
-		pred,Y_test = train_and_evaluate_model(model, X[train], Y[train], X[test], Y[test],nb_classes)
-                np.save("./results/preds_"+nome_train+"_"+str(i)+"_tanh",pred)
-                np.save("./results/test_"+nome_train+"_"+str(i)+"_tanh",Y_test)
-                i=i+1
+	model = create_model(nb_classes,input_length)
+	train_and_evaluate_model(model, X, Y, nb_classes)
+        
